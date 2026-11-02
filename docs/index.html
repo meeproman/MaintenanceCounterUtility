@@ -1,143 +1,442 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Waste Ink Maintenance Counter Utility</title>
-<meta name="description" content="Open-source, maintenance-focused utility for selected compatible inkjet printers. Reads and resets waste-ink maintenance counters over USB, after physical pad/tank service." />
-<link rel="canonical" href="https://devmosman.github.io/MaintenanceCounterUtility/" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Waste Ink Maintenance Counter Utility" />
-<meta property="og:description" content="Open-source utility to read and reset waste-ink maintenance counters over USB, after physical pad/tank service. Windows, EUPL-1.2." />
-<meta property="og:url" content="https://devmosman.github.io/MaintenanceCounterUtility/" />
-<meta property="og:image" content="https://devmosman.github.io/MaintenanceCounterUtility/og-image.png" />
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Waste Ink Maintenance Counter Utility" />
-<meta name="twitter:description" content="Read & reset waste-ink maintenance counters over USB, after physical pad/tank service. Open-source, Windows." />
-<meta name="twitter:image" content="https://devmosman.github.io/MaintenanceCounterUtility/og-image.png" />
-<meta name="google-site-verification" content="ro7mkdN0ExzhpHyMqsIUWu9kjT__fVCPYPVgzTbxIA0" />
-<!-- Optional privacy-friendly analytics (no cookies). Create a free GoatCounter
-     site, then uncomment and replace YOURCODE:
--->
-     <script data-goatcounter="https://devmosman.goatcounter.com/count"
-        async src="//gc.zgo.at/count.js"></script>
-
+<title>Waste Ink Maintenance Counter Utility — macOS &amp; WebUSB Edition by @meeproman</title>
+<meta name="description" content="macOS & WebUSB Edition by @meeproman. Read, back up, and reset waste-ink maintenance counters directly in the browser on macOS over USB (supports L3210, L3250, L3110, L3150, and 110+ models)." />
 <style>
-  :root { --fg:#1d2330; --muted:#5a6472; --line:#e6e9ef; --brand:#1f6feb; --warn:#b35900; --pink:#ff5e8a; }
-  * { box-sizing:border-box; }
-  body { margin:0; font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--fg); }
-  .wrap { max-width:860px; margin:0 auto; padding:0 20px; }
-  header { padding:54px 0 30px; text-align:center; border-bottom:1px solid var(--line); }
-  h1 { font-size:30px; margin:0 0 6px; }
-  .sub { color:var(--muted); margin:0 0 8px; }
-  .tags { color:var(--muted); font-size:13px; margin:0 0 22px; }
-  .btn { display:inline-block; margin:6px 4px; text-decoration:none; padding:13px 26px; border-radius:8px; font-weight:600; border:1px solid transparent; }
-  .btn.primary { background:var(--brand); color:#fff; }
-  .btn.secondary { background:#fff; color:var(--brand); border-color:var(--brand); }
-  .btn.ghost { background:#fff; color:var(--fg); border-color:var(--line); }
-  .btn.donate { background:var(--pink); color:#fff; }
-  section { padding:30px 0; border-bottom:1px solid var(--line); }
-  h2 { font-size:20px; margin:0 0 12px; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
-  ul { margin:8px 0 0; padding-left:20px; } li { margin:4px 0; }
-  .note { background:#fff8ef; border:1px solid #f0dcc0; color:var(--warn); padding:14px 16px; border-radius:8px; }
-  .muted { color:var(--muted); font-size:14px; }
-  a.inline { color:var(--brand); }
-  code { background:#f3f5f9; padding:2px 6px; border-radius:5px; font-size:14px; }
-  .heart { display:inline-block; color:#fff; }
-  .support-end { text-align:center; }
-  .support-end .bigheart { font-size:42px; color:var(--pink); display:inline-block; }
-  footer { padding:26px 0 50px; color:var(--muted); font-size:13px; text-align:center; }
-  @media (max-width:640px){ .grid{ grid-template-columns:1fr; } }
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --fg: #1d2330;
+    --muted: #5a6472;
+    --line: #e2e7f0;
+    --brand: #1f6feb;
+    --brand-hover: #1859c1;
+    --ok: #1a7f37;
+    --warn: #b35900;
+    --danger: #cf222e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; padding: 28px 16px 60px; }
+  header { text-align: center; margin-bottom: 20px; }
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .credit-banner {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    background: #eef4ff;
+    border: 1px solid #cddff7;
+    color: #1a3a6e;
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 13.5px;
+  }
+  .credit-banner a {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .credit-banner a:hover { text-decoration: underline; }
 
-  /* Animations */
-  @keyframes heartbeat { 0%,100%{transform:scale(1);} 14%{transform:scale(1.25);} 28%{transform:scale(1);} 42%{transform:scale(1.25);} 70%{transform:scale(1);} }
-  @keyframes pulseShadow { 0%{box-shadow:0 0 0 0 rgba(255,94,138,.55);} 70%{box-shadow:0 0 0 14px rgba(255,94,138,0);} 100%{box-shadow:0 0 0 0 rgba(255,94,138,0);} }
-  @keyframes bob { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
-  .btn.donate { animation: pulseShadow 2s infinite; }
-  .btn.donate .heart, .support-end .bigheart { animation: heartbeat 1.4s infinite; }
-  .btn.download { animation: bob 2.4s ease-in-out infinite; }
-  @media (prefers-reduced-motion: reduce){ * { animation: none !important; } }
+  .env-warning {
+    display: none;
+    background: #fff8e6;
+    border: 1px solid #f0c975;
+    color: #7d4e00;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .card h2 {
+    font-size: 15.5px;
+    margin: 0 0 12px;
+    color: #2c3545;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .conn-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .model-title { font-size: 17px; font-weight: 700; }
+  .badge {
+    display: inline-block;
+    font-size: 12.5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .badge.ok { background: #e6f6ec; color: var(--ok); }
+  .badge.warn { background: #fff3e0; color: var(--warn); }
+  .status-line { font-size: 13.5px; margin-top: 6px; font-weight: 600; }
+  .status-line.normal { color: var(--ok); }
+  .status-line.alert { color: var(--danger); }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  select.model-select {
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--fg);
+    flex: 1;
+    min-width: 220px;
+  }
+  button.action-btn {
+    cursor: pointer;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.15s ease;
+  }
+  button.action-btn:hover:not(:disabled) { background: #f0f4fa; }
+  button.action-btn.primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+  }
+  button.action-btn.primary:hover:not(:disabled) { background: var(--brand-hover); }
+  button.action-btn.danger {
+    background: #fff5f5;
+    border-color: #f5bcbc;
+    color: var(--danger);
+  }
+  button.action-btn.danger:hover:not(:disabled) { background: #ffe3e3; }
+  button.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .busy-status {
+    display: none;
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .waste-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 150px;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f8;
+  }
+  .waste-row:last-of-type { border-bottom: none; }
+  .bar-track {
+    height: 12px;
+    background: #edf0f7;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.35s ease;
+    border-radius: 999px;
+  }
+  .bar-fill.ok { background: var(--brand); }
+  .bar-fill.warn { background: #e07a00; }
+  .bar-fill.danger { background: var(--danger); }
+  .waste-val { font-variant-numeric: tabular-nums; font-size: 13.5px; text-align: right; }
+
+  table.usage-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.usage-table td { padding: 6px 4px; border-bottom: 1px solid #f2f4f8; }
+  table.usage-table tr:last-child td { border-bottom: none; }
+  table.usage-table td.num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .safety-box {
+    background: #fff9f0;
+    border: 1px solid #f2dec2;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 13px;
+    color: #6b4700;
+    margin-bottom: 14px;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    font-size: 13.5px;
+  }
+  .info-grid ul { margin: 6px 0 0; padding-left: 18px; }
+  .info-grid li { margin: 4px 0; }
+  pre.log-box {
+    background: #161b22;
+    color: #c9d1d9;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    margin: 8px 0 0;
+    white-space: pre-wrap;
+  }
+  footer {
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 24px;
+  }
+  footer a { color: var(--brand); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Modals */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #fff;
+    max-width: 580px;
+    width: 100%;
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal h3 { margin: 0 0 10px; font-size: 18px; }
+  .modal-scroll {
+    background: #f7f9fc;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    max-height: 300px;
+    margin-bottom: 12px;
+    white-space: pre-line;
+  }
+  .modal-check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13.5px;
+    margin: 8px 0 14px;
+    cursor: pointer;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  @media (max-width: 600px) {
+    .waste-row { grid-template-columns: 1fr; gap: 4px; }
+    .waste-val { text-align: left; }
+    .info-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>Waste Ink Maintenance Counter Utility</h1>
-    <p class="sub">A maintenance-support tool — <strong>not</strong> an official Epson product.</p>
-    <p class="tags">Open-source · Windows · USB · EUPL-1.2 · no ads · no telemetry</p>
-    <a class="btn primary download" href="web/index.html">🌐 Open macOS WebUSB App (Browser)</a>
-    <a class="btn secondary" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">⬇ Download (Windows)</a>
-    <a class="btn ghost" href="https://github.com/meeproman/MaintenanceCounterUtility">View source</a>
-    <a class="btn donate" href="https://ko-fi.com/devmosman" target="_blank" rel="noopener"><span class="heart">❤</span> Support on Ko‑fi</a>
-    <p class="muted" style="margin-top:14px">New here? See <a class="inline" href="#install">install &amp; verification ↓</a></p>
-  </div>
-</header>
-
-<section><div class="wrap" style="text-align:center">
-  <img src="img/screenshot.png" alt="Main window of the Waste Ink Maintenance Counter Utility"
-       style="max-width:100%; border:1px solid var(--line); border-radius:10px;" />
-</div></section>
-
-<section><div class="wrap">
-  <h2>What it does</h2>
-  <div class="grid">
-    <div>
-      <strong>It can</strong>
-      <ul>
-        <li>Read approximate waste-ink maintenance counters over USB.</li>
-        <li>Read usage counters (printed pages, scans, cleaning cycles).</li>
-        <li>Back up the relevant printer memory before any change.</li>
-        <li>Reset the maintenance counters <em>after</em> you service the pad/tank.</li>
-      </ul>
+<div class="wrap">
+  <header>
+    <h1>Waste Ink Maintenance Counter Utility <span style="font-size:15px;color:var(--brand);font-weight:700">macOS &amp; WebUSB Edition</span></h1>
+    <p class="subtitle">เครื่องมืออ่านค่า สำรองข้อมูล และรีเซ็ตตัวนับแผ่นซับหมึกบน macOS ผ่านเบราว์เซอร์โดยตรง (Pure Frontend JS)</p>
+    <div class="credit-banner">
+      <span>พัฒนาต่อยอดสำหรับ macOS &amp; WebUSB โดย <a href="https://github.com/meeproman" target="_blank" rel="noopener">@meeproman</a></span>
+      <span>·</span>
+      <span>พัฒนาต่อจากโปรเจกต์ต้นฉบับ <a href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">devmosman/MaintenanceCounterUtility</a></span>
+      <span>·</span>
+      <span><a href="https://github.com/meeproman/MaintenanceCounterUtility" target="_blank" rel="noopener">GitHub Fork</a></span>
     </div>
-    <div>
-      <strong>It does not</strong>
-      <ul>
-        <li>Clean, empty, repair, or replace the waste-ink pad/tank.</li>
-        <li>Perform any physical maintenance.</li>
-        <li>Act as a way to avoid service requirements.</li>
-        <li>Guarantee compatibility, or provide legal advice.</li>
-      </ul>
+  </header>
+
+  <div id="envWarning" class="env-warning"></div>
+
+  <!-- Main Interactive WebUSB Console -->
+  <div class="card">
+    <div class="conn-header">
+      <div>
+        <div id="modelTitle" class="model-title">ยังไม่ได้เชื่อมต่อเครื่องพิมพ์</div>
+        <div id="modelBadge" class="badge warn" style="display:inline-block">เสียบสาย USB เข้ากับเครื่อง Mac แล้วกดปุ่ม "เลือกเครื่องพิมพ์ USB"</div>
+        <div id="printerStatus" class="status-line"></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <select id="modelSelect" class="model-select" title="เลือกรุ่นเครื่องพิมพ์"></select>
+      <button id="btnConnect" class="action-btn primary">🔌 เลือกเครื่องพิมพ์ USB</button>
+      <button id="btnRefresh" class="action-btn">🔄 อ่านค่าล่าสุด</button>
+    </div>
+
+    <div class="toolbar">
+      <button id="btnBackup" class="action-btn">💾 สำรองข้อมูล (Backup JSON)</button>
+      <button id="btnReset" class="action-btn danger">♻️ รีเซ็ตตัวนับซับหมึก (Reset Counters)</button>
+      <button id="btnRestore" class="action-btn">📂 กู้คืนจากไฟล์ (Restore…)</button>
+      <input id="restoreFileInput" type="file" accept=".json,application/json" style="display:none" />
+    </div>
+
+    <div id="busyStatus" class="busy-status"></div>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span>ระดับตัวนับแผ่นซับหมึก (Waste Ink Maintenance Counters)</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:400">ค่าโดยประมาณ</span>
+    </h2>
+    <div id="wasteRow0" class="waste-row">
+      <div id="wasteName0">Main waste ink pad</div>
+      <div class="bar-track"><div id="wasteBar0" class="bar-fill ok"></div></div>
+      <div id="wasteVal0" class="waste-val">--</div>
+    </div>
+    <div id="wasteRow1" class="waste-row">
+      <div id="wasteName1">Platen / borderless pad</div>
+      <div class="bar-track"><div id="wasteBar1" class="bar-fill ok"></div></div>
+      <div id="wasteVal1" class="waste-val">--</div>
+    </div>
+    <div id="wasteRow2" class="waste-row">
+      <div id="wasteName2">Flushing / cleaning pad</div>
+      <div class="bar-track"><div id="wasteBar2" class="bar-fill ok"></div></div>
+      <div id="wasteVal2" class="waste-val">--</div>
     </div>
   </div>
-</div></section>
 
-<section><div class="wrap">
-  <h2>Important — physical maintenance first</h2>
-  <p class="note">A counter reset clears only the <strong>software</strong> counter. The physical waste-ink pad is still full and must be inspected, cleaned, replaced, or redirected to an external tank — otherwise ink can overflow inside the printer. Use this only for legitimate owner maintenance, after physical service.</p>
-</div></section>
+  <div class="card">
+    <h2>สถิติการใช้งานเครื่องพิมพ์ (Usage Counters)</h2>
+    <table class="usage-table">
+      <tbody id="usageBody">
+        <tr><td colspan="2" style="color:var(--muted)">เชื่อมต่อเครื่องพิมพ์เพื่อแสดงข้อมูลสถิติการใช้งาน</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-<section><div class="wrap">
-  <h2>Supported models</h2>
-  <p><strong>Verified on hardware (June 2026):</strong> L3250 / L3251 / L3253 / L3255.<br>
-  <strong>Experimental (unverified):</strong> additional compatible models — use extra caution.</p>
-  <p class="muted">See the <a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/SUPPORTED_MODELS.md">full model list</a> and <a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/DATA_PROVENANCE.md">data provenance</a>.</p>
-</div></section>
+  <div class="safety-box">
+    <strong>คำเตือนสำคัญ:</strong> การรีเซ็ตนี้เป็นการล้างเฉพาะตัวเลขในหน่วยความจำ (Software Counter) เท่านั้น <strong>ไม่ได้</strong> ทำความสะอาดหรือเปลี่ยนแผ่นซับหมึกจริง ผู้ใช้ต้องตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือต่อท่อหมึกทิ้งออกถังภายนอกให้เรียบร้อยก่อนทำการรีเซ็ต เพื่อป้องกันหมึกล้นภายในเครื่องพิมพ์
+  </div>
 
-<section id="install"><div class="wrap">
-  <h2>Install &amp; verify</h2>
-  <ul>
-    <li><a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/releases/latest">Download the latest release</a>, unzip, run <code>MaintenanceCounterUtility.exe</code>.</li>
-    <li>The app is <strong>unsigned</strong>: SmartScreen may warn → <em>More info → Run anyway</em>.</li>
-    <li>Verify integrity against <code>SHA256SUMS.txt</code>, or build it yourself from source.</li>
-    <li>Connect the printer by USB, accept the Terms on first run, then use the app.</li>
-    <li>After a reset, <strong>power-cycle the printer</strong> to commit the change.</li>
-  </ul>
-  <p class="muted" style="margin-top:10px">Help: <a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility/blob/main/USER_GUIDE.md">User Guide</a> · <a class="inline" href="faq.html">FAQ</a> · <a class="inline" href="guide-fix-epson-l3250-waste-ink.html">Fixing the Epson L3250 service-required error</a></p>
-</div></section>
+  <div class="card">
+    <h2>สิ่งที่พัฒนาต่อยอดในเวอร์ชันนี้ (@meeproman)</h2>
+    <div class="info-grid">
+      <div>
+        <strong>สิ่งที่เพิ่มและพัฒนาต่อยอด</strong>
+        <ul>
+          <li>แปลงสแต็ก USB + IEEE 1284.4 (D4) + EPSON-CTRL เป็น <strong>Pure Frontend JavaScript (WebUSB)</strong> สำหรับใช้งานบน macOS ผ่านเบราว์เซอร์ (Chrome / Edge / Brave) ได้ทันที</li>
+          <li>พอร์ตแอปเดสก์ท็อป Python ให้รองรับการ Build เป็น <code>MaintenanceCounterUtility.app</code> บน macOS (<code>libusb-1.0</code> + PyUSB)</li>
+          <li>เพิ่มการรองรับตระกูล <strong>L3210 / L32xx</strong> และ <strong>L3110 / L31xx</strong> เพิ่มเติมจากฐานข้อมูลเดิม</li>
+        </ul>
+      </div>
+      <div>
+        <strong>ความเข้ากันได้และต้นฉบับ</strong>
+        <ul>
+          <li>พัฒนาต่อจากโปรเจกต์ต้นฉบับ <a href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">devmosman/MaintenanceCounterUtility</a> (สำหรับ Windows)</li>
+          <li>ไฟล์ Backup <code>.json</code> จากหน้าเว็บสามารถใช้ร่วมกับโปรแกรมเวอร์ชัน Desktop ได้ 100%</li>
+          <li>ทำงานภายในเบราว์เซอร์ของผู้ใช้ 100% ไม่มีการส่งข้อมูลหรือ Serial Number ออกนอกเครื่อง</li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
-<section class="support-end"><div class="wrap">
-  <div class="bigheart">❤</div>
-  <h2>Support the project</h2>
-  <p class="muted">This tool is free and open-source, with no ads and no telemetry. If it helped you, a small tip keeps it maintained (entirely optional).</p>
-  <a class="btn donate" href="https://ko-fi.com/devmosman" target="_blank" rel="noopener"><span class="heart">❤</span> Support on Ko‑fi</a>
-</div></section>
+  <div class="card">
+    <h2>
+      <span>ประวัติการทำงานในเครื่อง (Local Operation Logs)</span>
+      <span>
+        <button id="btnDownloadLog" class="action-btn" style="padding:4px 10px;font-size:12px">⬇ ดาวน์โหลด Log</button>
+        <button id="btnClearLog" class="action-btn" style="padding:4px 10px;font-size:12px">ล้างประวัติ</button>
+      </span>
+    </h2>
+    <pre id="logOutput" class="log-box"></pre>
+  </div>
 
-<footer><div class="wrap">
-  <p><strong>macOS &amp; WebUSB Edition</strong> contributed by <a class="inline" href="https://github.com/meeproman" target="_blank" rel="noopener"><strong>@meeproman</strong></a> · Original Windows utility by <a class="inline" href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">devmosman</a> · Model database derived from <a class="inline" href="https://github.com/Ircama/epson_print_conf" target="_blank" rel="noopener">epson_print_conf</a> (Ircama).</p>
-  <p>This project is not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a trademark of its respective owner. Product names are used only to describe compatibility with selected printer models.</p>
-  <p>Licensed under EUPL-1.2. Not legal advice; laws vary by jurisdiction.</p>
-</div></footer>
+  <footer>
+    <p><strong>macOS &amp; WebUSB Edition</strong> โดย <a href="https://github.com/meeproman" target="_blank" rel="noopener"><strong>@meeproman</strong></a> (<a href="https://github.com/meeproman/MaintenanceCounterUtility" target="_blank" rel="noopener">ดูซอร์สโค้ด Fork</a>) — พัฒนาต่อยอดจากโปรเจกต์ต้นฉบับ <a href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">devmosman/MaintenanceCounterUtility</a> และฐานข้อมูลรุ่นจาก <a href="https://github.com/Ircama/epson_print_conf" target="_blank" rel="noopener">epson_print_conf</a> (EUPL-1.2).</p>
+    <p>This project is not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a trademark of its respective owner. Product names are used only to describe compatibility with selected printer models.</p>
+  </footer>
+</div>
+
+<!-- First-run Terms of Use Modal -->
+<div id="termsModal" class="modal-backdrop">
+  <div class="modal">
+    <h3>ข้อตกลงการใช้งาน (Terms of Use)</h3>
+    <div class="modal-scroll">1. USE AT YOUR OWN RISK (ใช้งานด้วยความเสี่ยงของคุณเอง): ซอฟต์แวร์นี้ให้ใช้ "ตามสภาพ" โดยไม่มีการรับประกันใดๆ ผู้พัฒนาไม่รับผิดชอบต่อความเสียหาย ข้อมูลสูญหาย หรือการหมดประกันของเครื่องพิมพ์
+
+2. SOFTWARE ONLY (แก้ไขเฉพาะซอฟต์แวร์): การรีเซ็ตตัวนับจะล้างค่าตัวเลขในหน่วยความจำเครื่องพิมพ์เท่านั้น ไม่ได้ทำความสะอาด เปลี่ยน หรือซ่อมแซมแผ่นซับหมึกจริง
+
+3. PHYSICAL MAINTENANCE FIRST (ต้องดูแลแผ่นซับหมึกจริงก่อนเสมอ): ให้กดรีเซ็ตหลังจากที่คุณได้ตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือติดตั้งถังพักหมึกทิ้งภายนอกเรียบร้อยแล้วเท่านั้น การรีเซ็ตโดยไม่จัดการแผ่นซับหมึกจริงอาจทำให้หมึกล้นเลอะเทอะและทำให้เครื่องเสียหายได้
+
+4. LEGITIMATE MAINTENANCE ONLY: ใช้เพื่อการบำรุงรักษาเครื่องพิมพ์ของตนเองอย่างถูกต้องเท่านั้น ไม่ควรรีเซ็ตขณะที่ตัวนับยังต่ำโดยไม่มีเหตุผลในการซ่อมบำรุง
+
+5. EXPERIMENTAL MODELS: รุ่นที่ระบุว่า "EXPERIMENTAL" เป็นข้อมูลจากคอมมูนิตี้ โปรดใช้งานด้วยความระมัดระวังเป็นพิเศษ
+
+6. NON-AFFILIATION: โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องหรือได้รับการรับรองจาก Epson แต่อย่างใด</div>
+    <label class="modal-check">
+      <input type="checkbox" id="termsAgreeChk" />
+      <span>ฉันได้อ่านและยอมรับข้อตกลงการใช้งานทั้งหมด และขอรับผิดชอบต่อการบำรุงรักษาเครื่องพิมพ์ด้วยตนเอง</span>
+    </label>
+    <div class="modal-actions">
+      <button id="termsAcceptBtn" class="action-btn primary" disabled>ยอมรับและเข้าใช้งาน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mandatory Pre-Reset Confirmation Modal -->
+<div id="resetModal" class="modal-backdrop">
+  <div class="modal">
+    <h3>ยืนยันก่อนรีเซ็ตตัวนับซับหมึก (Mandatory Pre-Reset Check)</h3>
+    <div class="modal-scroll">โปรดตรวจสอบและทำความเข้าใจทั้ง 8 ข้อก่อนดำเนินการรีเซ็ต:
+
+1. การรีเซ็ตด้วยซอฟต์แวร์นี้เป็นการล้างเฉพาะตัวนับในหน่วยความจำเท่านั้น
+2. ซอฟต์แวร์นี้ไม่ได้ทำความสะอาด เททิ้ง ซ่อมแซม หรือเปลี่ยนแผ่นซับหมึกจริง
+3. คุณต้องตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือติดตั้งถังหมึกทิ้งภายนอกให้เรียบร้อยก่อนดำเนินการต่อ
+4. การใช้งานอย่างไม่ถูกต้องอาจทำให้หมึกล้น รั่วซึม หรือเกิดความเสียหายต่อเครื่องพิมพ์ได้
+5. ใช้สำหรับการบำรุงรักษาเครื่องของตนเองอย่างสมเหตุสมผลเท่านั้น
+6. ไม่ควรรีเซ็ตตัวนับที่ยังอยู่ในระดับต่ำโดยไม่มีเหตุผลในการซ่อมบำรุงจริง
+7. ระบบจะทำการสำรองข้อมูล EEPROM (ดาวน์โหลดไฟล์ .json) ให้อัตโนมัติก่อนเขียนค่าใหม่
+8. เครื่องมือนี้ไม่มีส่วนเกี่ยวข้องกับบริษัท Epson</div>
+    <label class="modal-check">
+      <input type="checkbox" id="ackPhysicalChk" />
+      <span><strong>ฉันยืนยันว่าได้ตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือติดตั้งถังพักหมึกทิ้งภายนอกที่ใช้งานได้จริงเรียบร้อยแล้ว</strong> (I confirm that the waste ink pad has been inspected, cleaned, replaced, or an external waste ink tank is installed and functioning.)</span>
+    </label>
+    <div class="modal-actions">
+      <button id="resetCancelBtn" class="action-btn">ยกเลิก</button>
+      <button id="resetContinueBtn" class="action-btn danger" disabled>ดำเนินการต่อ</button>
+    </div>
+  </div>
+</div>
+
+<script src="./web/model_db.js"></script>
+<script type="module" src="./web/app.js"></script>
 </body>
 </html>

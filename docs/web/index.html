@@ -28,8 +28,27 @@
   }
   .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 56px; }
   header { text-align: center; margin-bottom: 18px; }
-  h1 { font-size: 24px; margin: 0 0 4px; }
-  .subtitle { color: var(--muted); font-size: 13px; margin: 0; }
+  h1 { font-size: 25px; margin: 0 0 6px; }
+  .subtitle { color: var(--muted); font-size: 13.5px; margin: 0 0 10px; }
+  .credit-banner {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    background: #eef4ff;
+    border: 1px solid #cddff7;
+    color: #1a3a6e;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13.5px;
+  }
+  .credit-banner a {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .credit-banner a:hover { text-decoration: underline; }
   .env-warning {
     display: none;
     background: #fff8e6;
@@ -244,8 +263,15 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Waste Ink Maintenance Counter Utility <span style="font-size:14px;color:var(--brand);font-weight:600">macOS WebUSB</span></h1>
-    <p class="subtitle">ทำงานบนเบราว์เซอร์ 100% (Pure Frontend JS) · ไม่ต้องติดตั้งโปรแกรม · ไม่ส่งข้อมูลออกนอกเครื่อง · ไม่ใช่ผลิตภัณฑ์ของ Epson</p>
+    <h1>Waste Ink Maintenance Counter Utility <span style="font-size:15px;color:var(--brand);font-weight:700">macOS &amp; WebUSB Edition</span></h1>
+    <p class="subtitle">รีเซ็ตและอ่านค่าตัวนับแผ่นซับหมึกผ่านเบราว์เซอร์ (Pure Frontend JS) · รองรับ L3210, L3250, L3110, L3150 และอีกกว่า 110 รุ่น</p>
+    <div class="credit-banner">
+      <span>พัฒนาต่อยอดสำหรับ macOS &amp; WebUSB โดย <a href="https://github.com/meeproman" target="_blank" rel="noopener">@meeproman</a></span>
+      <span>·</span>
+      <span>Fork พัฒนาต่อจาก <a href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">Repository ต้นฉบับ (devmosman)</a></span>
+      <span>·</span>
+      <span><a href="https://github.com/meeproman/MaintenanceCounterUtility" target="_blank" rel="noopener">ดูซอร์สโค้ด</a></span>
+    </div>
   </header>
 
   <div id="envWarning" class="env-warning"></div>
@@ -322,9 +348,8 @@
   </div>
 
   <footer>
-    <p><strong>macOS &amp; WebUSB Edition</strong> developed by <a href="https://github.com/meeproman" target="_blank" rel="noopener"><strong>@meeproman</strong></a> (added macOS port, pure-frontend WebUSB stack, and L3210 / L3110 series support) · Based on <a href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">MaintenanceCounterUtility</a> by devmosman &amp; model data from <a href="https://github.com/Ircama/epson_print_conf" target="_blank" rel="noopener">epson_print_conf</a> (Ircama).</p>
+    <p><strong>macOS &amp; WebUSB Edition</strong> โดย <a href="https://github.com/meeproman" target="_blank" rel="noopener"><strong>@meeproman</strong></a> — พัฒนาต่อยอดจากโปรเจกต์ต้นฉบับ <a href="https://github.com/devmosman/MaintenanceCounterUtility" target="_blank" rel="noopener">devmosman/MaintenanceCounterUtility</a> และฐานข้อมูลรุ่นจาก <a href="https://github.com/Ircama/epson_print_conf" target="_blank" rel="noopener">epson_print_conf</a> (EUPL-1.2).</p>
     <p>This project is not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a trademark of its respective owner. Product names are used only to describe compatibility with selected printer models.</p>
-    <p>v1.0.0 WebUSB · Licensed under EUPL-1.2 · <a href="../index.html">หน้าแรก</a> · <a href="https://github.com/meeproman/MaintenanceCounterUtility" target="_blank" rel="noopener">Source Code (GitHub)</a></p>
   </footer>
 </div>
 

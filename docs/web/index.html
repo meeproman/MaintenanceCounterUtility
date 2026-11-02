@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Waste Ink Maintenance Counter Utility — macOS WebUSB</title>
+<meta name="description" content="Pure Frontend macOS WebUSB utility to read, back up, and reset waste-ink maintenance counters on compatible Epson printers (including L3210, L3250, L3110, L3150)." />
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --fg: #1d2330;
+    --muted: #5a6472;
+    --line: #e2e7f0;
+    --brand: #1f6feb;
+    --brand-hover: #1859c1;
+    --ok: #1a7f37;
+    --warn: #b35900;
+    --danger: #cf222e;
+    --pink: #ff5e8a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 16px 56px; }
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 13px; margin: 0; }
+  .env-warning {
+    display: none;
+    background: #fff8e6;
+    border: 1px solid #f0c975;
+    color: #7d4e00;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .card h2 {
+    font-size: 15px;
+    margin: 0 0 12px;
+    color: #2c3545;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .conn-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .model-title { font-size: 17px; font-weight: 700; }
+  .badge {
+    display: inline-block;
+    font-size: 12.5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .badge.ok { background: #e6f6ec; color: var(--ok); }
+  .badge.warn { background: #fff3e0; color: var(--warn); }
+  .status-line { font-size: 13.5px; margin-top: 6px; font-weight: 600; }
+  .status-line.normal { color: var(--ok); }
+  .status-line.alert { color: var(--danger); }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  select.model-select {
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: var(--fg);
+    flex: 1;
+    min-width: 220px;
+  }
+  button.action-btn {
+    cursor: pointer;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.15s ease;
+  }
+  button.action-btn:hover:not(:disabled) { background: #f0f4fa; }
+  button.action-btn.primary {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+  }
+  button.action-btn.primary:hover:not(:disabled) { background: var(--brand-hover); }
+  button.action-btn.danger {
+    background: #fff5f5;
+    border-color: #f5bcbc;
+    color: var(--danger);
+  }
+  button.action-btn.danger:hover:not(:disabled) { background: #ffe3e3; }
+  button.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .busy-status {
+    display: none;
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: var(--brand);
+    font-weight: 600;
+  }
+
+  .waste-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 150px;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f8;
+  }
+  .waste-row:last-of-type { border-bottom: none; }
+  .bar-track {
+    height: 12px;
+    background: #edf0f7;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    transition: width 0.35s ease;
+    border-radius: 999px;
+  }
+  .bar-fill.ok { background: var(--brand); }
+  .bar-fill.warn { background: #e07a00; }
+  .bar-fill.danger { background: var(--danger); }
+  .waste-val { font-variant-numeric: tabular-nums; font-size: 13.5px; text-align: right; }
+
+  table.usage-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.usage-table td { padding: 6px 4px; border-bottom: 1px solid #f2f4f8; }
+  table.usage-table tr:last-child td { border-bottom: none; }
+  table.usage-table td.num { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .safety-box {
+    background: #fff9f0;
+    border: 1px solid #f2dec2;
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 13px;
+    color: #6b4700;
+    margin-bottom: 14px;
+  }
+  pre.log-box {
+    background: #161b22;
+    color: #c9d1d9;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    max-height: 160px;
+    overflow-y: auto;
+    margin: 8px 0 0;
+    white-space: pre-wrap;
+  }
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 22px;
+  }
+  footer a { color: var(--brand); text-decoration: none; }
+
+  /* Modals */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: #fff;
+    max-width: 580px;
+    width: 100%;
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal h3 { margin: 0 0 10px; font-size: 18px; }
+  .modal-scroll {
+    background: #f7f9fc;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-y: auto;
+    font-size: 13.5px;
+    max-height: 300px;
+    margin-bottom: 12px;
+    white-space: pre-line;
+  }
+  .modal-check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    font-size: 13.5px;
+    margin: 8px 0 14px;
+    cursor: pointer;
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  @media (max-width: 600px) {
+    .waste-row { grid-template-columns: 1fr; gap: 4px; }
+    .waste-val { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Waste Ink Maintenance Counter Utility <span style="font-size:14px;color:var(--brand);font-weight:600">macOS WebUSB</span></h1>
+    <p class="subtitle">ทำงานบนเบราว์เซอร์ 100% (Pure Frontend JS) · ไม่ต้องติดตั้งโปรแกรม · ไม่ส่งข้อมูลออกนอกเครื่อง · ไม่ใช่ผลิตภัณฑ์ของ Epson</p>
+  </header>
+
+  <div id="envWarning" class="env-warning"></div>
+
+  <div class="card">
+    <div class="conn-header">
+      <div>
+        <div id="modelTitle" class="model-title">ยังไม่ได้เชื่อมต่อเครื่องพิมพ์</div>
+        <div id="modelBadge" class="badge warn" style="display:inline-block">เสียบสาย USB เข้ากับ Mac แล้วกด "เลือกเครื่องพิมพ์ USB"</div>
+        <div id="printerStatus" class="status-line"></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <select id="modelSelect" class="model-select" title="เลือกรุ่นเครื่องพิมพ์"></select>
+      <button id="btnConnect" class="action-btn primary">🔌 เลือกเครื่องพิมพ์ USB</button>
+      <button id="btnRefresh" class="action-btn">🔄 อ่านค่าล่าสุด</button>
+    </div>
+
+    <div class="toolbar">
+      <button id="btnBackup" class="action-btn">💾 สำรองข้อมูล (Backup JSON)</button>
+      <button id="btnReset" class="action-btn danger">♻️ รีเซ็ตตัวนับซับหมึก (Reset Counters)</button>
+      <button id="btnRestore" class="action-btn">📂 กู้คืนจากไฟล์ (Restore…)</button>
+      <input id="restoreFileInput" type="file" accept=".json,application/json" style="display:none" />
+    </div>
+
+    <div id="busyStatus" class="busy-status"></div>
+  </div>
+
+  <div class="card">
+    <h2>
+      <span>ระดับตัวนับแผ่นซับหมึก (Waste Ink Maintenance Counters)</span>
+      <span style="font-size:12px;color:var(--muted);font-weight:400">ค่าโดยประมาณ</span>
+    </h2>
+    <div id="wasteRow0" class="waste-row">
+      <div id="wasteName0">Main waste ink pad</div>
+      <div class="bar-track"><div id="wasteBar0" class="bar-fill ok"></div></div>
+      <div id="wasteVal0" class="waste-val">--</div>
+    </div>
+    <div id="wasteRow1" class="waste-row">
+      <div id="wasteName1">Platen / borderless pad</div>
+      <div class="bar-track"><div id="wasteBar1" class="bar-fill ok"></div></div>
+      <div id="wasteVal1" class="waste-val">--</div>
+    </div>
+    <div id="wasteRow2" class="waste-row">
+      <div id="wasteName2">Flushing / cleaning pad</div>
+      <div class="bar-track"><div id="wasteBar2" class="bar-fill ok"></div></div>
+      <div id="wasteVal2" class="waste-val">--</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>สถิติการใช้งานเครื่องพิมพ์ (Usage Counters)</h2>
+    <table class="usage-table">
+      <tbody id="usageBody">
+        <tr><td colspan="2" style="color:var(--muted)">เชื่อมต่อเครื่องพิมพ์เพื่อแสดงข้อมูลสถิติการใช้งาน</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="safety-box">
+    <strong>คำเตือนสำคัญ:</strong> การรีเซ็ตนี้เป็นการล้างเฉพาะตัวเลขในหน่วยความจำ (Software Counter) เท่านั้น <strong>ไม่ได้</strong> ทำความสะอาดหรือเปลี่ยนแผ่นซับหมึกจริง ผู้ใช้ต้องตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือต่อท่อหมึกทิ้งออกถังภายนอกให้เรียบร้อยก่อนทำการรีเซ็ต เพื่อป้องกันหมึกล้นภายในเครื่องพิมพ์
+  </div>
+
+  <div class="card">
+    <h2>
+      <span>ประวัติการทำงานในเครื่อง (Local Operation Logs)</span>
+      <span>
+        <button id="btnDownloadLog" class="action-btn" style="padding:4px 10px;font-size:12px">⬇ ดาวน์โหลด Log</button>
+        <button id="btnClearLog" class="action-btn" style="padding:4px 10px;font-size:12px">ล้างประวัติ</button>
+      </span>
+    </h2>
+    <pre id="logOutput" class="log-box"></pre>
+  </div>
+
+  <footer>
+    <p>This project is not affiliated with, endorsed by, sponsored by, or approved by Epson. Epson is a trademark of its respective owner. Product names are used only to describe compatibility with selected printer models.</p>
+    <p>v1.0.0 WebUSB · Licensed under EUPL-1.2 · <a href="../index.html">หน้าแรก</a> · <a href="https://github.com/meeproman/MaintenanceCounterUtility" target="_blank" rel="noopener">Source Code (GitHub)</a></p>
+  </footer>
+</div>
+
+<!-- First-run Terms of Use Modal -->
+<div id="termsModal" class="modal-backdrop">
+  <div class="modal">
+    <h3>ข้อตกลงการใช้งาน (Terms of Use)</h3>
+    <div class="modal-scroll">1. USE AT YOUR OWN RISK (ใช้งานด้วยความเสี่ยงของคุณเอง): ซอฟต์แวร์นี้ให้ใช้ "ตามสภาพ" โดยไม่มีการรับประกันใดๆ ผู้พัฒนาไม่รับผิดชอบต่อความเสียหาย ข้อมูลสูญหาย หรือการหมดประกันของเครื่องพิมพ์
+
+2. SOFTWARE ONLY (แก้ไขเฉพาะซอฟต์แวร์): การรีเซ็ตตัวนับจะล้างค่าตัวเลขในหน่วยความจำเครื่องพิมพ์เท่านั้น ไม่ได้ทำความสะอาด เปลี่ยน หรือซ่อมแซมแผ่นซับหมึกจริง
+
+3. PHYSICAL MAINTENANCE FIRST (ต้องดูแลแผ่นซับหมึกจริงก่อนเสมอ): ให้กดรีเซ็ตหลังจากที่คุณได้ตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือติดตั้งถังพักหมึกทิ้งภายนอกเรียบร้อยแล้วเท่านั้น การรีเซ็ตโดยไม่จัดการแผ่นซับหมึกจริงอาจทำให้หมึกล้นเลอะเทอะและทำให้เครื่องเสียหายได้
+
+4. LEGITIMATE MAINTENANCE ONLY: ใช้เพื่อการบำรุงรักษาเครื่องพิมพ์ของตนเองอย่างถูกต้องเท่านั้น ไม่ควรรีเซ็ตขณะที่ตัวนับยังต่ำโดยไม่มีเหตุผลในการซ่อมบำรุง
+
+5. EXPERIMENTAL MODELS: รุ่นที่ระบุว่า "EXPERIMENTAL" เป็นข้อมูลจากคอมมูนิตี้ โปรดใช้งานด้วยความระมัดระวังเป็นพิเศษ
+
+6. NON-AFFILIATION: โปรเจกต์นี้ไม่มีส่วนเกี่ยวข้องหรือได้รับการรับรองจาก Epson แต่อย่างใด</div>
+    <label class="modal-check">
+      <input type="checkbox" id="termsAgreeChk" />
+      <span>ฉันได้อ่านและยอมรับข้อตกลงการใช้งานทั้งหมด และขอรับผิดชอบต่อการบำรุงรักษาเครื่องพิมพ์ด้วยตนเอง</span>
+    </label>
+    <div class="modal-actions">
+      <button id="termsAcceptBtn" class="action-btn primary" disabled>ยอมรับและเข้าใช้งาน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mandatory Pre-Reset Confirmation Modal -->
+<div id="resetModal" class="modal-backdrop">
+  <div class="modal">
+    <h3>ยืนยันก่อนรีเซ็ตตัวนับซับหมึก (Mandatory Pre-Reset Check)</h3>
+    <div class="modal-scroll">โปรดตรวจสอบและทำความเข้าใจทั้ง 8 ข้อก่อนดำเนินการรีเซ็ต:
+
+1. การรีเซ็ตด้วยซอฟต์แวร์นี้เป็นการล้างเฉพาะตัวนับในหน่วยความจำเท่านั้น
+2. ซอฟต์แวร์นี้ไม่ได้ทำความสะอาด เททิ้ง ซ่อมแซม หรือเปลี่ยนแผ่นซับหมึกจริง
+3. คุณต้องตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือติดตั้งถังหมึกทิ้งภายนอกให้เรียบร้อยก่อนดำเนินการต่อ
+4. การใช้งานอย่างไม่ถูกต้องอาจทำให้หมึกล้น รั่วซึม หรือเกิดความเสียหายต่อเครื่องพิมพ์ได้
+5. ใช้สำหรับการบำรุงรักษาเครื่องของตนเองอย่างสมเหตุสมผลเท่านั้น
+6. ไม่ควรรีเซ็ตตัวนับที่ยังอยู่ในระดับต่ำโดยไม่มีเหตุผลในการซ่อมบำรุงจริง
+7. ระบบจะทำการสำรองข้อมูล EEPROM (ดาวน์โหลดไฟล์ .json) ให้อัตโนมัติก่อนเขียนค่าใหม่
+8. เครื่องมือนี้ไม่มีส่วนเกี่ยวข้องกับบริษัท Epson</div>
+    <label class="modal-check">
+      <input type="checkbox" id="ackPhysicalChk" />
+      <span><strong>ฉันยืนยันว่าได้ตรวจสอบ ทำความสะอาด เปลี่ยนแผ่นซับหมึก หรือติดตั้งถังพักหมึกทิ้งภายนอกที่ใช้งานได้จริงเรียบร้อยแล้ว</strong> (I confirm that the waste ink pad has been inspected, cleaned, replaced, or an external waste ink tank is installed and functioning.)</span>
+    </label>
+    <div class="modal-actions">
+      <button id="resetCancelBtn" class="action-btn">ยกเลิก</button>
+      <button id="resetContinueBtn" class="action-btn danger" disabled>ดำเนินการต่อ</button>
+    </div>
+  </div>
+</div>
+
+<script src="./model_db.js"></script>
+<script type="module" src="./app.js"></script>
+</body>
+</html>

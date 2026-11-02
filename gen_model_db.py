@@ -85,13 +85,62 @@ L3250 = {
 }
 
 
+# L3210 / L32xx / L12xx / L52xx family (same C634 mainboard, factory 0x4A36,
+# write-key "Maribaya", and 3-pad EEPROM layout as L3250/ET-2400/ET-2810).
+L3210_FAMILY_NAMES = [
+    "L1210", "L1250",
+    "L3200", "L3201",
+    "L3210", "L3211", "L3215", "L3216",
+    "L3252", "L3256", "L3258",
+    "L3260", "L3266",
+    "L5290", "L5296",
+]
+L3210 = {
+    **L3250,
+    "names": sorted({norm(n) for n in L3210_FAMILY_NAMES}),
+}
+
+# L3110 / L31xx / L1110 / L5190 family (same mainboard, factory [151, 7],
+# write-key "Maribaya", and 2-pad EEPROM layout as L3150).
+L3110_FAMILY_NAMES = [
+    "L1110",
+    "L3100", "L3101",
+    "L3110", "L3111", "L3115", "L3116",
+    "L3156", "L3158",
+    "L5190",
+]
+L3110 = {
+    "factory": [151, 7],
+    "keyword": caesar(b"Maribaya"),
+    "counters": [
+        {"addresses": [48, 49, 47], "max": 6346, "name": PAD_NAMES[0]},
+        {"addresses": [50, 51, 47], "max": 3416, "name": PAD_NAMES[1]},
+    ],
+    "reset": [[48, 0], [49, 0], [47, 0], [52, 0], [53, 0], [54, 94],
+              [50, 0], [51, 0], [55, 94], [28, 0]],
+    "usage": [
+        ["Maintenance required level of 1st waste ink counter", [[54]]],
+        ["Maintenance required level of 2nd waste ink counter", [[55]]],
+        ["First TI received time", [[9, 8]]],
+        ["Total print pass counter", [[133, 132, 131, 130]]],
+        ["Total print page counter", [[776, 775, 774, 773]]],
+        ["Total scan counter", [[1843, 1842, 1841, 1840]]],
+        ["Ink replacement counter - Black", [[554]]],
+        ["Ink replacement counter - Cyan", [[555]]],
+        ["Ink replacement counter - Magenta", [[556]]],
+        ["Ink replacement counter - Yellow", [[557]]],
+    ],
+    "names": sorted({norm(n) for n in L3110_FAMILY_NAMES}),
+}
+
+
 def main():
     printer = epson_print_conf.EpsonPrinter()
     config = printer.PRINTER_CONFIG
 
-    models = {"L3250": L3250}
+    models = {"L3250": L3250, "L3210": L3210, "L3110": L3110}
     for name, cfg in sorted(config.items()):
-        if not isinstance(cfg, dict) or name == "L3250":
+        if not isinstance(cfg, dict) or name in models:
             continue
         entry = convert(name, cfg)
         if entry:

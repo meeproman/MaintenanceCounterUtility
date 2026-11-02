@@ -121,6 +121,15 @@ class ModelDbTest(unittest.TestCase):
         self.assertEqual(len(entry["counters"]), 3)
         self.assertTrue(len(entry["reset"]) >= 10)
 
+    def test_resolve_l3210_and_l3110(self):
+        import printer_core
+        key, entry = printer_core.resolve("L3210 Series")
+        self.assertEqual(key, "L3210")
+        self.assertEqual(len(entry["counters"]), 3)
+        key2, entry2 = printer_core.resolve("L3110 Series")
+        self.assertEqual(key2, "L3110")
+        self.assertEqual(len(entry2["counters"]), 2)
+
     def test_model_count_nonzero(self):
         import printer_core
         self.assertGreater(printer_core.model_count(), 50)
